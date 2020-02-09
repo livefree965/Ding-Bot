@@ -22,7 +22,8 @@ class Tmall_item():
             url = re.findall("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
                              update.message.text)[0]
             text = requests.get(url).text
-            sku_id = re.findall('id=(.+?)&source', text) or re.findall('tmall\.com/i(.+?)\.htm', text)
+            sku_id = re.findall('id=(.+?)&source', text) or re.findall('tmall\.com/i(.+?)\.htm', text) or re.findall(
+                'taobao\.com/i(.+?)\.htm', text)
             sku_id = int(sku_id[0])
             chat_id = update.message.chat_id
             user_area = self.bot_database.get_user_area(chat_id)
@@ -168,6 +169,9 @@ class Tmall_item():
 
     @run_async
     def record_status(self, context: CallbackContext):
+        res = self.bot_database.get_sku_area()
+        if len(res) == 0:
+            return
         sku_id, area = self.bot_database.get_sku_area()[0]
         try:
             ret_json = json.loads(requests.get(

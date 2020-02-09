@@ -1,0 +1,5 @@
+/telegram.db
+/telegram.log
+/.idea/
+/__pycache__/
+/config.ini

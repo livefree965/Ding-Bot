@@ -1,3 +1,4 @@
+# encoding = utf-8
 from telegram import Bot
 from telegram.utils import request
 from Bot_Controller import *

@@ -1,3 +1,4 @@
+# encoding = utf-8
 import os, json, re, time
 import requests
 from telegram.ext import Updater, CallbackContext, run_async

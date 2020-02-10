@@ -68,6 +68,14 @@ class Tmall_item():
         pass
 
     @run_async
+    def notify_by_ios(self, context: CallbackContext):
+        chat_id, title, link = context.job.context
+        ret = self.bot_database.get_ios(chat_id)
+        if ret:
+            requests.get("https://api.day.app/%s/%s?url=%s" % (ret[0][0], title, link))
+        pass
+
+    @run_async
     def watch_one_sku_area(self, context: CallbackContext):
         sku_area = context.job.context
         sku_id, area_id = sku_area.split('_')
@@ -83,11 +91,12 @@ class Tmall_item():
                     if not self.bot_database.has_notified(chat_id, sku_id):
                         area = pcCode[self.bot_database.get_user_area(chat_id) / 10000]
                         title = self.bot_database.get_sku_title(sku_id)
+                        link = "https://detail.tmall.com/item.htm?id=%s" % sku_id
+                        context.job_queue.run_once(self.notify_by_ios, when=0.001, context=[chat_id, title, link])
                         for i in range(3):
                             context.bot.send_message(chat_id=chat_id,
                                                      text='地址: %s\n商品: %s\n链接: %s' % (
-                                                         area, title,
-                                                         "https://detail.tmall.com/item.htm?id=%s" % sku_id))
+                                                         area, title, link))
                         self.bot_database.add_has_notified(chat_id, sku_id)
             elif ret_res is False and self.bot_database.isin_notified(sku_id):
                 self.bot_database.del_has_notified(sku_id=sku_id)
@@ -120,6 +129,16 @@ class Tmall_item():
             context.bot.send_message(chat_id=update.message.chat_id, text='添加监控失败')
             return
         context.bot.send_message(chat_id=update.message.chat_id, text='添加监控成功')
+
+    def set_ios(self, update, context: CallbackContext):
+        chat_id = update.message.chat_id
+        try:
+            ios_key = context.args[0]
+            self.bot_database.set_ios(chat_id, ios_key)
+            context.bot.send_message(chat_id=update.message.chat_id, text='设置IOS推送成功')
+        except:
+            context.bot.send_message(chat_id=update.message.chat_id, text='设置IOS推送失败,参考格式: /ios nJ92xxx\n'
+                                                                          '获取后面的KEY方法：AppStore搜索Bark并安装，完成后复制api.day.app/123/中间的123')
 
     def set_area(self, update, context: CallbackContext):
         keyboard = []

@@ -21,7 +21,8 @@ class Bot_Controller:
                                   '2.支持淘宝分享链接支持复制给我添加，只要带有m.tb.cn我都可以识别哒，例如：\n'
                                   '付致这行话转移至τаo宝аρρ；或https://m.tb.cn/xxx 嚸↑↓擊鏈﹏接，再选择瀏覽→\n'
                                   '3.有任何想法可以搜索@sysu_bot向我提问或建议\n'
-                                  '4.非常感谢支持')
+                                  '4.非常感谢支持\n'
+                                  '相关命令: /list 展示监控商品 /del 删除监控商品 /area 设置地区 /ios 添加IOS推送')
 
     def unknown_command(self, update, context):
         update.message.reply_text('没听懂哦，输入/start获取帮助')
@@ -35,6 +36,7 @@ class Bot_Controller:
         self.updater.dispatcher.add_handler(CommandHandler('list', self.tmall_item.list_item))
         self.updater.dispatcher.add_handler(CommandHandler('del', self.tmall_item.delete_item))
         self.updater.dispatcher.add_handler(CommandHandler('area', self.tmall_item.set_area))
+        self.updater.dispatcher.add_handler(CommandHandler('ios', self.tmall_item.set_ios))
         self.updater.dispatcher.add_handler(CommandHandler('status', self.tmall_item.get_status))
         self.updater.dispatcher.add_handler(CallbackQueryHandler(self.tmall_item.reply_area, pattern='area'))
         self.updater.dispatcher.add_handler(CallbackQueryHandler(self.tmall_item.reply_delete, pattern='del'))

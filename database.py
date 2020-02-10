@@ -10,33 +10,34 @@ pcCode = {11: '北京市', 12: '天津市', 13: '河北省', 14: '山西省', 15
 
 class Bot_Database:
     def __init__(self):
+        self.conn = sqlite3.connect('telegram.db', check_same_thread=False)
+        self.init_database()
         if os.path.exists('telegram.db'):
-            self.conn = sqlite3.connect('telegram.db', check_same_thread=False)
             self.reset_has_notified()
-        else:
-            self.conn = sqlite3.connect('telegram.db', check_same_thread=False)
-            self.init_database()
         self.conn.row_factory = lambda cursor, row: row
 
     def init_database(self):
         c = self.conn.cursor()
-        c.execute('''CREATE TABLE USER_AREA
+        c.execute('''CREATE TABLE IF NOT EXISTS USER_AREA
         (CHAT_ID INT PRIMARY KEY NOT NULL,
         AREA_ID INT NOT NULL);''')
-        c.execute('''CREATE TABLE AREA_MAP (
+        c.execute('''CREATE TABLE IF NOT EXISTS AREA_MAP (
         AREA_ID INT PRIMARY KEY NOT NULL,
         AREA_NAME CHAR(4) NOT NULL);''')
-        c.execute('''CREATE TABLE SKU_TITLE (
+        c.execute('''CREATE TABLE IF NOT EXISTS SKU_TITLE (
         SKU_ID INT PRIMARY KEY NOT NULL,
         TITLE VARCHAR(255) NOT NULL);''')
-        c.execute('''CREATE TABLE USER_SKU(
+        c.execute('''CREATE TABLE IF NOT EXISTS USER_SKU(
         CHAT_ID INT NOT NULL,
         SKU_ID INT NOT NULL,
         PRIMARY KEY (CHAT_ID,SKU_ID));''')
-        c.execute('''CREATE TABLE HAS_NOTIFIED(
+        c.execute('''CREATE TABLE IF NOT EXISTS HAS_NOTIFIED(
                 CHAT_ID INT NOT NULL,
                 SKU_ID INT NOT NULL,
                 PRIMARY KEY (CHAT_ID,SKU_ID));''')
+        c.execute('''CREATE TABLE IF NOT EXISTS CHAT_IOS(
+                CHAT_ID INT PRIMARY KEY NOT NULL,
+                IOS_ID VARCHAR(255) NOT NULL);''')
         self.conn.commit()
         c.close()
 
@@ -140,6 +141,22 @@ class Bot_Database:
         c = self.conn.cursor()
         c.execute(
             '''SELECT USER_SKU.SKU_ID,USER_AREA.AREA_ID FROM USER_SKU inner join USER_AREA WHERE USER_SKU.CHAT_ID = USER_AREA.CHAT_ID;''')
+        res = c.fetchall()
+        c.close()
+        return res
+
+    def set_ios(self, chat_id, ios_key):
+        c = self.conn.cursor()
+        c.execute('''REPLACE INTO CHAT_IOS (CHAT_ID,IOS_ID) VALUES (%d,'%s')''' % (chat_id, ios_key))
+        self.conn.commit()
+        c.close()
+        pass
+
+    def get_ios(self, chat_id):
+        c = self.conn.cursor()
+        c.execute(
+            '''SELECT IOS_ID FROM CHAT_IOS WHERE CHAT_ID = %d ''' % chat_id)
+        self.conn.commit()
         res = c.fetchall()
         c.close()
         return res
